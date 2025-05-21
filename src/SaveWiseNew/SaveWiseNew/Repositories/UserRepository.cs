@@ -1,11 +1,12 @@
 ﻿using Dapper;
 using Npgsql;
 using SaveWise.Model;
+using SaveWiseNew.Repositories;
 using System.Data;
 
 namespace SaveWise.Repositories
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly IDbConnection _connection;
 
@@ -14,49 +15,45 @@ namespace SaveWise.Repositories
             _connection = connection;
         }
 
-        public async Task Add(User user)
+        public async Task<User> Add(User user)
         {
             var sql = """
                 INSERT INTO users (name, age) 
                 VALUES (@name, @age)
-                returning *
+                RETURNING *
                 """;
-                
 
-            var result = await _connection.QuerySingleAsync<User>(sql, user);
-            user.Id = result.Id;
-            user.DteCreate = result.DteCreate;
+            return await _connection.QuerySingleAsync<User>(sql, user);
         }
 
-        public async Task<IEnumerable<User>> Get()
+        public async Task<List<User>> Get()
         {
             var sql = """
                 SELECT * FROM users
                 """;
 
-            return await _connection.QueryAsync<User>(sql);
+            var result = await _connection.QueryAsync<User>(sql);
+            return result.ToList();
         }
 
-        public async Task<User> Get(int idUser)
+        public async Task<User?> Get(int id)
         {
             var sql = """
-                SELECT * FROM users WHERE id = @idUser
+                SELECT * FROM users WHERE id = @id
                 """;
 
-            return await _connection.QueryFirstOrDefaultAsync<User>(sql,
-                new { idUser }
-            );
+            return await _connection.QueryFirstOrDefaultAsync<User>(sql, new { id });
         }
 
-        public async Task Delete(int idUser)
+        public async Task<bool> Delete(int id)
         {
             var sql = """
-                DELETE users WHERE id = @idUser
+                DELETE FROM users WHERE id = @id
                 """;
 
-            await _connection.ExecuteAsync(sql,
-                new { Id = idUser }
-            );
+            return (await _connection.ExecuteAsync(sql,
+                new { id }
+            )) > 0;
         }
     }
 }

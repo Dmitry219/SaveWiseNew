@@ -8,9 +8,9 @@ services:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: 1111
     ports:
-        - "5432:5432"
+        - "5433:5432"
     volumes:
-        - postgres_data:/var/lib/postgresql/data
+        - postgres_data:/var/lib/postgresql/data 
 
   savewisenew:
     image: ${DOCKER_REGISTRY-}savewisenew
@@ -19,10 +19,14 @@ services:
       dockerfile: SaveWiseNew/Dockerfile
     container_name: savewise-api
     environment:
-      - ConnectionStrings__Db=Server=postgres;Port=5432;Database=SaveWise;User Id=postgres;Password=1111;
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      #- ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DbUri=Server=postgres;Port=5432;Database=SaveWise;User Id=postgres;Password=1111;
     ports:
+      #- "5000:5000"
       - "8080:8080"
-      - "8081:8081"
+      #- "8081:8081"
     depends_on:
       - postgres
 
