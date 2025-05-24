@@ -29,48 +29,47 @@ namespace SaveWies.Tests
         [Test]
         public async Task Post_ShouldReturnCreatedUser()
         {
+            // Arrange
             var inputUser = new User { Name = "Test", Age = 25 };
             var createdUser = new User { Id = 1, Name = "Test", Age = 25 };
 
-            _mockUserService.Setup(s => s.Add(It.IsAny<User>()))
+            _mockUserService.Setup(s => s.Add(inputUser))
                             .ReturnsAsync(createdUser);
 
+            // Act
             var result = await _controller.Post(inputUser);
-
             var createdResult = result.Result as CreatedAtActionResult;
-            Assert.IsNotNull(createdResult);
-            Assert.That(createdResult.ActionName, Is.EqualTo("GetAll"));
-
             var returnedUser = createdResult.Value as User;
-            Assert.IsNotNull(returnedUser);
+
+            // Assert
+            Assert.That(createdResult, Is.Not.Null);
+            Assert.That(createdResult.StatusCode, Is.EqualTo(201));
+
+            Assert.That(returnedUser, Is.Not.Null);
             Assert.That(returnedUser.Id, Is.EqualTo(createdUser.Id));
             Assert.That(returnedUser.Name, Is.EqualTo(createdUser.Name));
         }
 
         [Test]
-        public async Task Post_ShouldReturnBadRequest_WhenUserIsNull()
+        public async Task Post_ShouldReturnBadRequest_WhenModelIsInvalid()
         {
-            User nullUser = null;
+            // Arrange
+            var user = new User { Age = -1 }; // не указано имя, возраст некорректный
 
-            var result = await _controller.Post(nullUser);
+            _controller.ModelState.AddModelError("Name", "Required");
+            _controller.ModelState.AddModelError("Age", "Invalid");
 
-            Assert.IsInstanceOf<BadRequestResult>(result.Result);
-        }
+            // Act
+            var result = await _controller.Post(user);
 
-        [Test]
-        public async Task Post_ShouldReturnBadRequest_WhenServiceReturnsNull()
-        {
-            var inputUser = new User { Name = "Test", Age = 25 };
-            _mockUserService.Setup(s => s.Add(It.IsAny<User>())).ReturnsAsync((User)null);
-
-            var result = await _controller.Post(inputUser);
-
-            Assert.IsInstanceOf<BadRequestResult>(result.Result);
+            // Assert
+            Assert.IsInstanceOf<BadRequestObjectResult>(result.Result);
         }
 
         [Test]
         public async Task GetAll_ShouldReturnListOfUsers()
         {
+            // Arrange
             var users = new List<User>
             {
                 new User { Id = 1, Name = "Alice", Age = 30 },
@@ -80,14 +79,16 @@ namespace SaveWies.Tests
             _mockUserService.Setup(s => s.Get())
                             .ReturnsAsync(users);
 
-            var result = await _controller.GetAll();
-
+            //Act
+            var result = await _controller.Get();
             var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-
             var returnedUsers = okResult.Value as List<User>;
-            Assert.IsNotNull(returnedUsers);
-            Assert.That(returnedUsers.Count, Is.EqualTo(users.Count));
+
+            // Assert
+            Assert.That(okResult, Is.Not.Null);
+
+            Assert.That(returnedUsers, Is.Not.Null);
+            Assert.That(returnedUsers, Is.Not.Null.And.Count.EqualTo(users.Count));
             Assert.That(returnedUsers[0].Name, Is.EqualTo("Alice"));
             Assert.That(returnedUsers[1].Name, Is.EqualTo("Bob"));
         }
@@ -95,17 +96,19 @@ namespace SaveWies.Tests
         [Test]
         public async Task Get_WithValidId_ShouldReturnUser()
         {
+            // Arrange
             var user = new User { Id = 1, Name = "Alice", Age = 30 };
             _mockUserService.Setup(s => s.Get(1))
                             .ReturnsAsync(user);
 
+            // Act
             var result = await _controller.Get(1);
-
             var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-
             var returnedUser = okResult.Value as User;
-            Assert.IsNotNull(returnedUser);
+
+            // Assert
+            Assert.That(okResult, Is.Not.Null);
+            Assert.That(returnedUser, Is.Not.Null);
             Assert.That(returnedUser.Id, Is.EqualTo(user.Id));
             Assert.That(returnedUser.Name, Is.EqualTo(user.Name));
         }
@@ -113,22 +116,28 @@ namespace SaveWies.Tests
         [Test]
         public async Task Delete_WithValidId_ShouldReturnNoContent()
         {
+            // Arrange
             _mockUserService.Setup(s => s.Delete(1))
                             .ReturnsAsync(true);
 
+            // Act
             var result = await _controller.Delete(1);
 
+            // Assert
             Assert.IsInstanceOf<NoContentResult>(result);
         }
 
         [Test]
         public async Task Delete_WithInvalidId_ShouldReturnNotFound()
         {
+            // Arrange
             _mockUserService.Setup(s => s.Delete(99))
                             .ReturnsAsync(false);
 
+            // Act
             var result = await _controller.Delete(99);
 
+            // Assert
             Assert.IsInstanceOf<NotFoundResult>(result);
         }
     }

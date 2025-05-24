@@ -1,4 +1,4 @@
-namespace SaveWiseNew
+namespace Middleware
 {
     public class WeatherForecast
     {

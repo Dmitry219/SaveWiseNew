@@ -2,28 +2,29 @@
 using Npgsql;
 using SaveWise.Model;
 using SaveWiseNew.Repositories;
+using SaveWiseNew.Utils;
 using System.Data;
 
 namespace SaveWise.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository(ISqlExecutor sql) : IUserRepository
     {
-        private readonly IDbConnection _connection;
+        private readonly ISqlExecutor _sql = sql;
 
-        public UserRepository(IDbConnection connection)
+        /*public UserRepository(ISqlExecutor sql)
         {
-            _connection = connection;
-        }
+            _sql = sql;
+        }*/
 
         public async Task<User> Add(User user)
         {
             var sql = """
                 INSERT INTO users (name, age) 
                 VALUES (@name, @age)
-                RETURNING *
+                RETURNING id, name, age, date_created AS DateCreate
                 """;
 
-            return await _connection.QuerySingleAsync<User>(sql, user);
+            return await _sql.QuerySingleAsync<User>(sql, user);
         }
 
         public async Task<List<User>> Get()
@@ -32,8 +33,8 @@ namespace SaveWise.Repositories
                 SELECT * FROM users
                 """;
 
-            var result = await _connection.QueryAsync<User>(sql);
-            return result.ToList();
+            var result = await _sql.QueryAsync<User>(sql);
+            return result.AsList();
         }
 
         public async Task<User?> Get(int id)
@@ -42,7 +43,7 @@ namespace SaveWise.Repositories
                 SELECT * FROM users WHERE id = @id
                 """;
 
-            return await _connection.QueryFirstOrDefaultAsync<User>(sql, new { id });
+            return await _sql.QueryFirstOrDefaultAsync<User>(sql, new { id });
         }
 
         public async Task<bool> Delete(int id)
@@ -51,7 +52,7 @@ namespace SaveWise.Repositories
                 DELETE FROM users WHERE id = @id
                 """;
 
-            return (await _connection.ExecuteAsync(sql,
+            return (await _sql.ExecuteAsync(sql,
                 new { id }
             )) > 0;
         }

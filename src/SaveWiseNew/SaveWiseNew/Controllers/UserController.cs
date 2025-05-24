@@ -8,34 +8,22 @@ namespace SaveWiseNew.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UserController : ControllerBase
+    public class UserController(IUserService userService) : ControllerBase
     {
-        private readonly IUserService _userService;
-
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
-
+        private readonly IUserService _userService = userService;
+        
         [HttpPost]
         public async Task<ActionResult<User>> Post([FromBody] User user)
         {
-            if(user == null)
-            {
-                return BadRequest();
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var createUser = await _userService.Add(user);
-            if (createUser == null)
-            {
-                return BadRequest();
-            }
-
-            return CreatedAtAction(nameof(GetAll), new { id = createUser.Id }, createUser);
+            return CreatedAtAction(nameof(Get), new { id = createUser.Id }, createUser);
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<User>>> GetAll()
+        public async Task<ActionResult<List<User>>> Get()
         {
             var users = await _userService.Get();
             return Ok(users);

@@ -3,6 +3,7 @@ using SaveWise.Migrations;
 using SaveWise.Repositories;
 using SaveWiseNew.Repositories;
 using SaveWiseNew.Service;
+using SaveWiseNew.Utils;
 using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,9 @@ builder.Services.AddScoped<IDbConnection>(sp =>
                                   new Npgsql.NpgsqlConnection(Environment.GetEnvironmentVariable("ConnectionStrings__DbUri")));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISqlExecutor, SqlExecutor>();
+
+builder.Services.AddHealthChecks();
 
 builder.Services.AddFluentMigratorCore()
     .ConfigureRunner(rb => rb
@@ -56,6 +60,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
 

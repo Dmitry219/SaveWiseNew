@@ -4,29 +4,19 @@ using SaveWiseNew.Repositories;
 
 namespace SaveWiseNew.Service
 {
-    public class UserService : IUserService
+    public class UserService(IUserRepository userRepository) : IUserService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository = userRepository;
 
-        public UserService(IUserRepository userRepository)
+        public Task<User> Add(User user)
         {
-            _userRepository = userRepository;
+            ArgumentNullException.ThrowIfNull(user);
+
+            return _userRepository.Add(user);
+            
         }
 
-        public async Task<User> Add(User user)
-        {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
-
-            var result = await _userRepository.Add(user);
-            return result;
-        }
-
-        public async Task<bool> Delete(int id)
-        {
-            var result = await _userRepository.Delete(id);
-            return result;
-        }
+        public Task<bool> Delete(int id) => _userRepository.Delete(id);
 
         public async Task<List<User>> Get()
         {
