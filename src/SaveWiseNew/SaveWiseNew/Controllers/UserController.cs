@@ -37,7 +37,7 @@ namespace SaveWiseNew.Controllers
             var user = await _userService.Get(request.Id);
 
             if (user == null)
-                return NotFound($"Пользователь с Id={request.Id} не найден");
+                return NotFound($"User with Id={request.Id} not found");
 
             return Ok(user);
         }
