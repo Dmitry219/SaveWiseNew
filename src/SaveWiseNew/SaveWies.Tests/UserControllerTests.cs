@@ -6,6 +6,7 @@ using Moq;
 using NUnit.Framework;
 using SaveWise.Model;
 using SaveWiseNew.Controllers;
+using SaveWiseNew.DTO;
 using SaveWiseNew.Service;
 using System.Net;
 using System.Net.Http.Json;
@@ -102,7 +103,7 @@ namespace SaveWies.Tests
                             .ReturnsAsync(user);
 
             // Act
-            var result = await _controller.Get(1);
+            var result = await _controller.Get(new UserIdRequest { Id = 1});
             var okResult = result.Result as OkObjectResult;
             var returnedUser = okResult.Value as User;
 
@@ -121,7 +122,7 @@ namespace SaveWies.Tests
                             .ReturnsAsync(true);
 
             // Act
-            var result = await _controller.Delete(1);
+            var result = await _controller.Delete(new UserIdRequest { Id = 1 });
 
             // Assert
             Assert.IsInstanceOf<NoContentResult>(result);
@@ -135,7 +136,7 @@ namespace SaveWies.Tests
                             .ReturnsAsync(false);
 
             // Act
-            var result = await _controller.Delete(99);
+            var result = await _controller.Delete(new UserIdRequest { Id = 99 });
 
             // Assert
             Assert.IsInstanceOf<NotFoundResult>(result);

@@ -1,6 +1,8 @@
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using SaveWise.Model;
 using SaveWise.Repositories;
+using SaveWiseNew.DTO;
 using SaveWiseNew.Service;
 using System.Threading.Tasks;
 
@@ -30,16 +32,20 @@ namespace SaveWiseNew.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> Get(int id)
+        public async Task<ActionResult<User>> Get([FromRoute] UserIdRequest request)
         {
-            var user = await _userService.Get(id);
+            var user = await _userService.Get(request.Id);
+
+            if (user == null)
+                return NotFound($"User with Id={request.Id} not found");
+
             return Ok(user);
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete([FromRoute] UserIdRequest request)
         {
-            var deleted = await _userService.Delete(id);
+            var deleted = await _userService.Delete(request.Id);
             return deleted ? NoContent() : NotFound();
         }
     }
