@@ -1,0 +1,6 @@
+@SaveWiseNew_HostAddress = http://localhost:5188
+
+GET {{SaveWiseNew_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

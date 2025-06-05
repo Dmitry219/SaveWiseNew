@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: savewise-db
+    restart: always
+    environment:
+        POSTGRES_DB: SaveWise
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: 1111
+    ports:
+        - "5433:5432"
+    volumes:
+        - postgres_data:/var/lib/postgresql/data 
+
+  savewisenew:
+    image: ${DOCKER_REGISTRY-}savewisenew
+    build:
+      context: .
+      dockerfile: SaveWiseNew/Dockerfile
+    container_name: savewise-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      #- ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DbUri=Server=postgres;Port=5432;Database=SaveWise;User Id=postgres;Password=1111;
+    ports:
+      #- "5000:5000"
+      - "8080:8080"
+      #- "8081:8081"
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
